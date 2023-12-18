@@ -1,8 +1,36 @@
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.awt.*;
+import javax.swing.*;
+
 
 public class Main {
     public static void main(String[] args) {
-        System.out.println("Hello world!");
+
+        Scene scene = new Scene();
+        scene.addItem(new Segment(new Point(10, 10), new Point(500, 10)));
+        scene.addItem(new Rectangle(new Point(100, 100), true, 100, 100));
+        scene.addItem(new Triangle(new Point(400, 400), new Point(500, 500), new Point(600, 400), true));
+        //Begin bałwanek:
+        //TODO: make bałwanek a complexitem
+        ArrayList<Item> balwanek = new ArrayList<>();
+        balwanek.add(new TextItem(new Point(275, 415), "Bałwanek"));
+        balwanek.add(new Circle(new Point(300, 300), false, 50));
+        balwanek.add(new Circle(new Point(300, 415), false, 65));
+        balwanek.add(new Circle(new Point(280, 290), true, 10));
+        balwanek.add(new Circle(new Point(320, 290), true, 10));
+        balwanek.add(new Segment(new Point(280, 320), new Point(320, 320)));
+        scene.addItem(new ComplexItem(new Point(0, 0), balwanek));
+
+        scene.items.get(3).translate(new Point(100, -200)); // move the bałwanek
+        scene.items.get(0).translate(new Point(200, 10)); // move the line, it doesn't start on the left edge of the screen anymore
+
+        // display the scene
+        JFrame frame = new JFrame("Simple Shapes");
+        frame.setSize(800, 800);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setContentPane(scene);
+        frame.setVisible(true);
     }
 }
 
@@ -22,6 +50,29 @@ class Point {
     }
 }
 
+class Scene extends JPanel{
+    ArrayList<Item> items;
+
+    void addItem(Item item) {
+        this.items.add(item);
+    }
+
+    Scene() {
+        items = new ArrayList<>();
+    }
+
+    protected void paintComponent(Graphics g) {
+
+        super.paintComponent(g);
+        if(this.items.isEmpty()) {items.add(new TextItem(new Point(350, 400), "No items to draw"));}
+
+            for (Item item : this.items) {
+               item.draw(g);
+            }
+
+    }
+}
+
 abstract class Item {
     Point position;
 
@@ -31,9 +82,7 @@ abstract class Item {
     Item(Point position) {
         this.position = position;
     }
-    void draw() {
-        //TODO
-    }
+    abstract void draw(Graphics g);
     abstract Point[] boundingBox();
     static Point[] getBoundingBoxFromList(ArrayList<Point> list) {
         int minX = list.get(0).x;
@@ -56,16 +105,27 @@ abstract class Item {
 
 class TextItem extends Item {
     String text;
+
+    Point[] textBoundingBox;
     TextItem(Point position, String text) {
         super(position);
         this.text = text;
-    }
-    void draw() {
-        //TODO: display text
+        this.textBoundingBox = new Point[] {position, position, position, position}; // fill textBoundingBox before it is calculated
     }
     Point[] boundingBox() {
-        //TODO: bounding box based on text size
-        return new Point[0];
+        return this.textBoundingBox;
+    }
+
+    void draw(Graphics g) {
+        g.drawString(this.text, this.position.x, this.position.y);
+        Rectangle2D bounds = g.getFontMetrics().getStringBounds(this.text, g);
+        // set this.textBoundingBox to the bounds
+        this.textBoundingBox = new Point[] {
+            new Point(this.position.x, this.position.y),
+            new Point(this.position.x, this.position.y + (int) bounds.getHeight()),
+            new Point(this.position.x + (int) bounds.getWidth(), this.position.y + (int) bounds.getHeight()),
+            new Point(this.position.x + (int) bounds.getWidth(), this.position.y)
+        };
     }
 }
 
@@ -93,6 +153,10 @@ class Segment extends Primitive {
     Point[] boundingBox() {
         return new Point[] {this.position, new Point(this.position.x, this.end.y), this.end, new Point(this.end.x, this.position.y)};
     }
+
+    void draw(Graphics g) {
+        g.drawLine(this.position.x, this.position.y, this.end.x, this.end.y);
+    }
 }
 
 abstract class Shape extends Primitive {
@@ -117,6 +181,14 @@ class Circle extends Shape {
         Point p4 = new Point(this.position.x + this.radius, this.position.y - this.radius);
         return new Point[] {p1, p2, p3, p4};
     }
+
+    void draw(Graphics g) {
+        if (this.filled) {
+            g.fillOval(this.position.x - this.radius, this.position.y - this.radius, this.radius * 2, this.radius * 2);
+        } else {
+            g.drawOval(this.position.x - this.radius, this.position.y - this.radius, this.radius * 2, this.radius * 2);
+        }
+    }
 }
 
 class Triangle extends Shape {
@@ -140,6 +212,20 @@ class Triangle extends Shape {
     Point[] boundingBox() {
         return getBoundingBoxFromList(this.points);
     }
+
+    void draw(Graphics g) {
+        int[] xPoints = new int[3];
+        int[] yPoints = new int[3];
+        for (int i = 0; i < 3; i++) {
+            xPoints[i] = this.points.get(i).x;
+            yPoints[i] = this.points.get(i).y;
+        }
+        if (this.filled) {
+            g.fillPolygon(xPoints, yPoints, 3);
+        } else {
+            g.drawPolygon(xPoints, yPoints, 3);
+        }
+    }
 }
 
 class Rectangle extends Shape {
@@ -157,6 +243,14 @@ class Rectangle extends Shape {
         Point p3 = new Point(this.position.x + this.width, this.position.y + this.height);
         Point p4 = new Point(this.position.x + this.width, this.position.y);
         return new Point[] {p1, p2, p3, p4};
+    }
+
+    void draw(Graphics g) {
+        if (this.filled) {
+            g.fillRect(this.position.x, this.position.y, this.width, this.height);
+        } else {
+            g.drawRect(this.position.x, this.position.y, this.width, this.height);
+        }
     }
 }
 
@@ -177,6 +271,20 @@ class customFigure extends Shape {
 
     Point[] boundingBox() {
         return getBoundingBoxFromList(this.points);
+    }
+
+    void draw(Graphics g) {
+        int[] xPoints = new int[this.points.size()];
+        int[] yPoints = new int[this.points.size()];
+        for (int i = 0; i < this.points.size(); i++) {
+            xPoints[i] = this.points.get(i).x;
+            yPoints[i] = this.points.get(i).y;
+        }
+        if (this.filled) {
+            g.fillPolygon(xPoints, yPoints, this.points.size());
+        } else {
+            g.drawPolygon(xPoints, yPoints, this.points.size());
+        }
     }
 }
 
@@ -215,6 +323,12 @@ class ComplexItem extends Item {
         Point p3 = new Point(maxX, maxY);
         Point p4 = new Point(maxX, minY);
         return new Point[] {p1, p2, p3, p4};
+    }
+
+    void draw(Graphics g) {
+        for (Item child : this.children) {
+            child.draw(g);
+        }
     }
 }
 
