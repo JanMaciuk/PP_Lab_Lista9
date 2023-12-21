@@ -9,10 +9,8 @@ public class Main {
 
         Scene scene = new Scene();
         scene.addItem(new Segment(new Point(10, 10), new Point(500, 10)));
-        scene.addItem(new Rectangle(new Point(100, 100), true, 100, 100));
+        scene.addItem(new Rectangle(new Point(100, 300), true, 100, 100));
         scene.addItem(new Triangle(new Point(400, 400), new Point(500, 500), new Point(600, 400), true));
-        //Begin bałwanek:
-        //TODO: make bałwanek a complexitem
         ArrayList<Item> balwanek = new ArrayList<>();
         balwanek.add(new TextItem(new Point(275, 415), "Bałwanek"));
         balwanek.add(new Circle(new Point(300, 300), false, 50));
@@ -21,6 +19,16 @@ public class Main {
         balwanek.add(new Circle(new Point(320, 290), true, 10));
         balwanek.add(new Segment(new Point(280, 320), new Point(320, 320)));
         scene.addItem(new ComplexItem(new Point(0, 0), balwanek));
+        ArrayList<Point> customFigurePoints = new ArrayList<>();
+        customFigurePoints.add(new Point(100, 0));
+        customFigurePoints.add(new Point(179, 29));
+        customFigurePoints.add(new Point(200, 100));
+        customFigurePoints.add(new Point(179, 171));
+        customFigurePoints.add(new Point(100, 200));
+        customFigurePoints.add(new Point(29, 171));
+        customFigurePoints.add(new Point(0, 100));
+        customFigurePoints.add(new Point(29, 29));
+        scene.addItem(new customFigure(new Point(100, 0), true, customFigurePoints));
 
         scene.items.get(3).translate(new Point(100, -200)); // move the bałwanek
         scene.items.get(0).translate(new Point(200, 10)); // move the line, it doesn't start on the left edge of the screen anymore
