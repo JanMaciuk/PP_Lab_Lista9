@@ -11,6 +11,7 @@ public class Main {
         scene.addItem(new Segment(new Point(10, 10), new Point(500, 10)));
         scene.addItem(new Rectangle(new Point(100, 300), true, 100, 100));
         scene.addItem(new Triangle(new Point(400, 400), new Point(500, 500), new Point(600, 400), true));
+        scene.addItem(new Triangle(new Point(400, 400), new Point(500, 500), new Point(600, 400), false));
         ArrayList<Item> balwanek = new ArrayList<>();
         balwanek.add(new TextItem(new Point(275, 415), "Bałwanek"));
         balwanek.add(new Circle(new Point(300, 300), false, 50));
@@ -62,6 +63,15 @@ class Scene extends JPanel{
     ArrayList<Item> items;
 
     void addItem(Item item) {
+        //Triangle is a singleton, so if we add another one it will overwrite the previous one.
+        if(item instanceof Triangle) {
+            for (Item i : this.items) {
+                if (i instanceof Triangle) {
+                    this.items.remove(i);
+                    break;
+                }
+            }
+        }
         this.items.add(item);
     }
 
