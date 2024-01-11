@@ -11,6 +11,7 @@ public class Main {
         scene.addItem(new Segment(new Point(10, 10), new Point(500, 10)));
         scene.addItem(new Rectangle(new Point(100, 300), true, 100, 100));
         scene.addItem(new Triangle(new Point(400, 400), new Point(500, 500), new Point(600, 400), true));
+        scene.drawBoundingBox(2);
         ArrayList<Item> balwanek = new ArrayList<>();
         balwanek.add(new TextItem(new Point(275, 415), "Bałwanek"));
         balwanek.add(new Circle(new Point(300, 300), false, 50));
@@ -29,6 +30,7 @@ public class Main {
         customFigurePoints.add(new Point(0, 100));
         customFigurePoints.add(new Point(29, 29));
         scene.addItem(new customFigure(new Point(100, 0), true, customFigurePoints));
+        scene.drawBoundingBox(3);
 
         scene.items.get(3).translate(new Point(100, -200)); // move the bałwanek
         scene.items.get(0).translate(new Point(200, 10)); // move the line, it doesn't start on the left edge of the screen anymore
@@ -61,12 +63,15 @@ class Point {
 class Scene extends JPanel{
     ArrayList<Item> items;
 
+    private ArrayList<Integer> selectedItems;
+
     void addItem(Item item) {
         this.items.add(item);
     }
 
     Scene() {
         items = new ArrayList<>();
+        selectedItems = new ArrayList<>();
     }
 
     protected void paintComponent(Graphics g) {
@@ -74,11 +79,22 @@ class Scene extends JPanel{
         super.paintComponent(g);
         if(this.items.isEmpty()) {items.add(new TextItem(new Point(350, 400), "No items to draw"));}
 
-            for (Item item : this.items) {
-               item.draw(g);
-            }
+        for (Item item : this.items) {
+            item.draw(g);
+        }
+        for (int itemIndex : selectedItems) {
+            //Use the decorator to draw the bounding box
+            Decorator decorator = new ConcreteDecorator(this.items.get(itemIndex));
+            decorator.draw(g);
+        }
 
     }
+     void drawBoundingBox(int itemIndex) {
+        if (!selectedItems.contains(itemIndex) && itemIndex < items.size() && itemIndex >= 0) {
+            selectedItems.add(itemIndex);
+        }
+    }
+
 }
 
 abstract class Item {
@@ -108,6 +124,34 @@ abstract class Item {
         Point p3 = new Point(maxX, maxY);
         Point p4 = new Point(maxX, minY);
         return new Point[] {p1, p2, p3, p4};
+    }
+}
+
+class Decorator {
+    Item item;
+    Decorator(Item item) {
+        this.item = item;
+    }
+    void draw(Graphics g) {
+        this.item.draw(g);
+    }
+    Point[] boundingBox() {
+        return this.item.boundingBox();
+    }
+}
+
+class ConcreteDecorator extends Decorator {
+    ConcreteDecorator(Item item) {
+        super(item);
+    }
+    void draw(Graphics g) {
+        super.draw(g);
+        // Show the bounding box
+        Point[] boundingBox = super.boundingBox();
+        g.drawRect(boundingBox[0].x, boundingBox[0].y, boundingBox[2].x - boundingBox[0].x, boundingBox[2].y - boundingBox[0].y);
+    }
+    Point[] boundingBox() {
+        return super.boundingBox();
     }
 }
 
