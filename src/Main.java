@@ -11,7 +11,7 @@ public class Main {
         scene.addItem(new Segment(new Point(10, 10), new Point(500, 10)));
         scene.addItem(new Rectangle(new Point(100, 300), true, 100, 100));
         scene.addItem(new Triangle(new Point(400, 400), new Point(500, 500), new Point(600, 400), false));
-        scene.addItem(new Triangle(new Point(400, 400), new Point(500, 500), new Point(600, 400), true));
+        scene.addItem(new Triangle(new Point(400, 400), new Point(500, 500), new Point(600, 400), true)); // Overwrites the previous triangle
         scene.drawBoundingBox(2);
         ArrayList<Item> balwanek = new ArrayList<>();
         balwanek.add(new TextItem(new Point(275, 415), "Bałwanek"));
@@ -62,15 +62,13 @@ class Point {
 }
 
 class Scene extends JPanel{
-    ArrayList<Item> items;
-
-    private ArrayList<Integer> selectedItems;
+    final ArrayList<Item> items;
 
     void addItem(Item item) {
-        //Triangle is a singleton, so if we add another one it will overwrite the previous one.
-        if(item instanceof Triangle) {
+        // if the item is a singleton, remove the previous singleton
+        if(item instanceof Singleton) {
             for (Item i : this.items) {
-                if (i instanceof Triangle) {
+                if (i.getClass() == item.getClass()) {
                     this.items.remove(i);
                     break;
                 }
@@ -81,30 +79,21 @@ class Scene extends JPanel{
 
     Scene() {
         items = new ArrayList<>();
-        selectedItems = new ArrayList<>();
     }
 
     protected void paintComponent(Graphics g) {
-
         super.paintComponent(g);
         if(this.items.isEmpty()) {items.add(new TextItem(new Point(350, 400), "No items to draw"));}
 
         for (Item item : this.items) {
             item.draw(g);
         }
-        for (int itemIndex : selectedItems) {
-            //Use the decorator to draw the bounding box
-            Decorator decorator = new ConcreteDecorator(this.items.get(itemIndex));
-            decorator.draw(g);
-        }
-
     }
      void drawBoundingBox(int itemIndex) {
-        if (!selectedItems.contains(itemIndex) && itemIndex < items.size() && itemIndex >= 0) {
-            selectedItems.add(itemIndex);
+        if ( itemIndex < items.size() && itemIndex >= 0) {
+            this.items.set(itemIndex, new ConcreteDecorator(this.items.get(itemIndex)));
         }
     }
-
 }
 
 abstract class Item {
@@ -137,9 +126,10 @@ abstract class Item {
     }
 }
 
-class Decorator {
+class Decorator extends Item {
     Item item;
     Decorator(Item item) {
+        super(item.position);
         this.item = item;
     }
     void draw(Graphics g) {
@@ -253,7 +243,10 @@ class Circle extends Shape {
     }
 }
 
-class Triangle extends Shape {
+// objects implementing this interface can only have one instance
+interface Singleton {}
+
+class Triangle extends Shape implements Singleton{
     ArrayList<Point> points;
     Triangle(Point position, Point p1, Point p2, boolean filled) {
         super(position, filled);
