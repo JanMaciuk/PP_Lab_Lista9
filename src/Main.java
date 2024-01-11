@@ -10,8 +10,8 @@ public class Main {
         Scene scene = new Scene();
         scene.addItem(new Segment(new Point(10, 10), new Point(500, 10)));
         scene.addItem(new Rectangle(new Point(100, 300), true, 100, 100));
-        scene.addItem(new Triangle(new Point(400, 400), new Point(500, 500), new Point(600, 400), true));
         scene.addItem(new Triangle(new Point(400, 400), new Point(500, 500), new Point(600, 400), false));
+        scene.addItem(new Triangle(new Point(400, 400), new Point(500, 500), new Point(600, 400), true));
         scene.drawBoundingBox(2);
         ArrayList<Item> balwanek = new ArrayList<>();
         balwanek.add(new TextItem(new Point(275, 415), "Bałwanek"));
